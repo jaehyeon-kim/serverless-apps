@@ -1,0 +1,4 @@
+localstack
+resources
+docker-compose.yaml
+__pycache__

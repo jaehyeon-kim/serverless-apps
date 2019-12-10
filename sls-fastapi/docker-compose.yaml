@@ -1,0 +1,31 @@
+version: "3.7"
+services:
+  fastapi:
+    image: sls-fastapi
+    build: .
+    container_name: sls-fastapi
+    ports:
+      - 8000:8000
+    volumes:
+      - ./:/home/app
+    environment:
+      - AWS_ACCESS_KEY_ID=foobar
+      - AWS_SECRET_ACCESS_KEY=foobar
+      - AWS_DEFAULT_REGION=ap-southeast-2 
+      - TABLE_NAME=simple-todo
+  localstack:
+    image: localstack/localstack:0.9.6
+    container_name: "localstack"
+    ports:
+      - "4563-4599:4563-4599"
+      - "8080:8080"
+    environment:
+      - AWS_ACCESS_KEY_ID=foobar
+      - AWS_SECRET_ACCESS_KEY=foobar
+      - AWS_DEFAULT_REGION=ap-southeast-2      
+      - SERVICES=dynamodb,cloudformation
+      - DEBUG=1
+      - DATA_DIR=/tmp/localstack/data
+    volumes:
+      - ./localstack/create-resources.sh:/docker-entrypoint-initaws.d/create-resources.sh
+      - ./localstack/dyanmodb.yaml:/tmp/dyanmodb.yaml
