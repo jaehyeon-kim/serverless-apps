@@ -1,4 +1,3 @@
-import os
 from fastapi import FastAPI, HTTPException
 
 from src import BasicError, Status, ChangeItem, NewItem, Item, Items, TodoItems
