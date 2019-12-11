@@ -13,6 +13,7 @@ services:
       - AWS_SECRET_ACCESS_KEY=foobar
       - AWS_DEFAULT_REGION=ap-southeast-2 
       - TABLE_NAME=simple-todo
+      - LOCAL_STACK_ENDPOINT_URL=http://localstack:4569
   localstack:
     image: localstack/localstack:0.9.6
     container_name: "localstack"

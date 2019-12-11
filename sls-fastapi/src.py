@@ -1,5 +1,5 @@
 import os
-from typing import List
+from typing import List, Union
 from datetime import datetime
 from pydantic import BaseModel
 import boto3
@@ -23,48 +23,69 @@ class UpdateItem(NewItem):
     created_at: datetime
 
 
-class Item(BaseModel):
+class ItemFields(BaseModel):
     todo: str
     username: str
-    created_at: datetime
-    updated_at: datetime = None
+    created_at: str
+    updated_at: str
+
+
+class Item(BaseModel):
+    item: Union[ItemFields, dict]
 
 
 class Items(BaseModel):
-    records: List[Item] = []
+    items: List[ItemFields] = []
 
 
 class TodoItems:
     def __init__(self):
-        self.table = boto3.resource("dynamodb").Table(os.environ["TABLE_NAME"])
+        self.endpoint_url = os.getenv("LOCAL_STACK_ENDPOINT_URL", None)
+        self.tablename = os.environ["TABLE_NAME"]
+        self.dt_format = "%Y-%m-%dT%H:%M:%SZ"
         self.hash_key = "username"
         self.range_key = "created_at"
 
-    def get_items(self, username: str, created_at: str, all_items: bool):
-        return []
+    def _table(self):
+        if not self.endpoint_url:
+            return boto3.resource("dynamodb").Table(self.tablename)
+        else:
+            session = boto3.session.Session()
+            return session.resource(
+                service_name="dynamodb",
+                region_name=os.environ["AWS_DEFAULT_REGION"],
+                endpoint_url=self.endpoint_url,
+            ).Table(self.tablename)
+
+    def get_items(self, username: str, created_at: str, all_items: bool = False):
+        if all_items:
+            args = {
+                "KeyConditionExpression": Key(self.hash_key).eq(username)
+                & Key(self.range_key).gte(created_at),
+                "ScanIndexForward": False,
+            }
+            resp = self._table().query(**args)
+            return {"items": resp.get("Items", [])}
+        else:
+            resp = self._table().get_item(Key={"username": username, "created_at": created_at})
+            return {"item": resp.get("Item", {})}
 
     def create_item(self, item: NewItem):
-        return {}
+        created_at = datetime.utcnow().strftime(self.dt_format)
+        self._table().put_item(
+            Item={
+                "todo": item.todo,
+                "username": item.username,
+                "created_at": created_at,
+                "updated_at": created_at,
+            }
+        )
+        return self.get_items(item.username, created_at, all_items=False)
 
-    def patch_item(self, item: UpdateItem):
+    def update_item(self, item: UpdateItem):
         return {}
 
     def delete_item(self, username: str, created_at: str):
-        return {}
-
-    # def item(self, todo_id: int):
-    #     return next(r for r in self.items.records if r.id == todo_id)
-
-    # def create_item(self, item: NewItem):
-    #     new_item = Item(id=len(self.items.records) + 1, todo=item.todo, username=item.username)
-    #     self.items.records.append(new_item)
-    #     return new_item
-
-    # def patch_item(self, todo_id: int, todo: str):
-    #     item = next(r for r in self.items.records if r.id == todo_id)
-    #     item.todo = todo
-    #     item.updated_at = datetime.utcnow()
-    #     return item
-
-    # def delete_item(self, todo_id: int):
-    #     self.items.records = [r for r in self.items.records if r.id != todo_id]
+        self._table().delete_item(
+            Key={"username": username, "created_at": created_at,}
+        )
