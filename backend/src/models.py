@@ -34,10 +34,31 @@ class ItemFields(BaseModel):
     created_at: str = set_dt_field(is_optional=False)
     updated_at: str = set_dt_field(is_optional=False)
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "todo": "string",
+                "username": "string",
+                "created_at": "2019-01-01T12:00:00Z",
+                "updated_at": "2019-01-01T12:00:00Z",
+            }
+        }
+
 
 class Item(BaseModel):
-    item: Union[ItemFields, dict]
+    item: ItemFields
 
 
 class Items(BaseModel):
-    items: Union[List[ItemFields], list]
+    # items: Union[List[ItemFields], list]
+    items: List[ItemFields]
+
+    class Config:
+        schema_extra = {
+            "example": {
+                "todo": "string",
+                "username": "string",
+                "created_at": "2019-01-01T12:00:00Z",
+                "updated_at": "2019-01-01T12:00:00Z",
+            }
+        }
