@@ -4,10 +4,17 @@ services:
     image: sls-fastapi
     build: .
     container_name: sls-fastapi
+    depends_on:
+      - localstack
+    command: >
+      main:app
+      --host=0.0.0.0
+      --port=8000
+      --reload
     ports:
       - 8000:8000
     volumes:
-      - ./:/home/app
+      - ./service:/home/app
     environment:
       - AWS_ACCESS_KEY_ID=foobar
       - AWS_SECRET_ACCESS_KEY=foobar
