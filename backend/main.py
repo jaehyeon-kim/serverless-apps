@@ -1,7 +1,8 @@
 from typing import Union
 from fastapi import FastAPI, HTTPException
 
-from src import BasicError, Status, NewItem, PatchItem, Item, Items, TodoItems, set_dt_field
+from src.todo import TodoItems
+from src.models import BasicError, Status, NewItem, PatchItem, Item, Items
 
 app = FastAPI(title="To do list backend")
 
@@ -15,7 +16,13 @@ async def health_check():
     "/items",
     response_model=Union[Item, Items],
     tags=["todo"],
-    description="Get item or items\n\taaa",
+    description="<br><br>".join(
+        [
+            "Get one or more items",
+            "`created_at` should be either datetime string (eg 2019-01-01T12:00:00Z) or date string (eg 2019-01-01).",
+            "When `all_items` equals `False`, only datetime string will return an item. Otherwise both will do.",
+        ]
+    ),
 )
 async def get_to_do_items(username: str, created_at: str, all_items: bool = False):
     return TodoItems().get_items(username, created_at, all_items)
@@ -33,7 +40,15 @@ async def update_to_do_item(item: PatchItem):
     return TodoItems().update_item(item)
 
 
-@app.delete("/item", response_model=Status, tags=["todo"], responses={404: {"model": BasicError}})
+@app.delete(
+    "/item",
+    response_model=Status,
+    tags=["todo"],
+    description="<br><br>".join(
+        ["Get an item", "`created_at` should be datetime string (eg 2019-01-01T12:00:00Z).",]
+    ),
+    responses={404: {"model": BasicError}},
+)
 async def delete_to_do_item(username: str, created_at: str):
     if not TodoItems().is_exist(username, created_at):
         raise HTTPException(404, detail="Item not found")

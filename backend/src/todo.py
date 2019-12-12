@@ -1,52 +1,9 @@
 import os
-from typing import List, Union
 from datetime import datetime
-from pydantic import BaseModel, Field
 import boto3
 from boto3.dynamodb.conditions import Key
 
-
-def set_dt_field(is_optional: bool):
-    desc = "Datetime string, format - eg) 2019-01-01T12:00:00Z"
-    if is_optional:
-        return Field(None, description=desc)
-    else:
-        return Field(..., description=desc)
-
-
-class BasicError(BaseModel):
-    detail: str
-
-
-class Status(BaseModel):
-    status: str
-
-
-class NewItem(BaseModel):
-    username: str
-    todo: str
-    when_at: str = set_dt_field(is_optional=True)
-
-
-class PatchItem(NewItem):
-    todo: str = None
-    created_at: str = set_dt_field(is_optional=False)
-
-
-class ItemFields(BaseModel):
-    todo: str
-    username: str
-    when_at: str = None
-    created_at: str = set_dt_field(is_optional=False)
-    updated_at: str = set_dt_field(is_optional=False)
-
-
-class Item(BaseModel):
-    item: Union[ItemFields, dict]
-
-
-class Items(BaseModel):
-    items: Union[List[ItemFields], list]
+from src.models import NewItem, PatchItem
 
 
 class TodoItems:
@@ -114,7 +71,7 @@ class TodoItems:
         return self.get_items(kwargs["username"], created_at, all_items=False)
 
     def _set_expr_values(self, d):
-        keys = ["todo", "when_at", "updated_at"]
+        keys = ["todo", "updated_at"]
         expr = "set {0}".format(
             ", ".join(["{0} = :{0}value".format(k) for k, _ in d.items() if k in keys])
         )
