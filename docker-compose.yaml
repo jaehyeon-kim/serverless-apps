@@ -12,7 +12,7 @@ services:
       --port=8000
       --reload
     ports:
-      - 8000:8000
+      - 30000:8000
     volumes:
       - ./backend:/home/app
     environment:
