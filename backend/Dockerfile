@@ -2,9 +2,12 @@ FROM python:3.7-slim-stretch
 
 RUN apt-get update && apt-get install -y gcc
 
-COPY ./requirements.txt /requirements.txt
-RUN pip install -r /requirements.txt \
-    && pip install boto3
+COPY ./Pipfile /Pipfile
+RUN pip install pipenv \
+    && pipenv lock -r > requirements.txt \
+    && pipenv lock -r --dev > requirements-dev.txt \
+    && pip install -r /requirements.txt \
+    && pip install -r /requirements-dev.txt
 
 ## create a user
 RUN useradd app && mkdir /home/app \

@@ -4,14 +4,16 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+boto3 = "*"
 black = "*"
 pylint = "*"
-boto3 = "*"
+pytest = "*"
+pytest-dependency = "*"
+requests = "*"
 
 [packages]
 fastapi = "*"
 uvicorn = "*"
-pydantic = "*"
 
 [requires]
 python_version = "3.7"

@@ -9,6 +9,11 @@ app = FastAPI(title="To do list backend")
 
 @app.get("/", response_model=Status, tags=["health"])
 async def health_check():
+    try:
+        TodoItems()._table()
+        print("table exists")
+    except Exception as e:
+        print(e)
     return {"status": "ok"}
 
 
@@ -35,6 +40,7 @@ async def get_to_do_items(username: str, created_at: str, all_items: bool = Fals
 
 @app.post("/item", response_model=Item, tags=["todo"])
 async def create_to_do_item(item: NewItem):
+    print(item)
     return TodoItems().create_item(item)
 
 
