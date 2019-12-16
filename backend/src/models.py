@@ -50,15 +50,4 @@ class Item(BaseModel):
 
 
 class Items(BaseModel):
-    # items: Union[List[ItemFields], list]
     items: List[ItemFields]
-
-    class Config:
-        schema_extra = {
-            "example": {
-                "todo": "string",
-                "username": "string",
-                "created_at": "2019-01-01T12:00:00Z",
-                "updated_at": "2019-01-01T12:00:00Z",
-            }
-        }

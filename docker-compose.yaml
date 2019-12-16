@@ -45,7 +45,7 @@ services:
       - localstack
     entrypoint: "python"
     command: >
-      -m pytest -rsxv
+      -m pytest -v --disable-warnings
     volumes:
       - ./backend:/home/app
     environment:
