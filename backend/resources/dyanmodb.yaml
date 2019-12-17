@@ -1,5 +1,5 @@
 Resources:
-  DynamodbTable:
+  TodoTable:
     Type: AWS::DynamoDB::Table
     Properties:
       TableName: ${self:custom.tableName}

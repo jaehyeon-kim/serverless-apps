@@ -1,0 +1,77 @@
+service: ${self:custom.serviceName}
+
+plugins:
+    - serverless-python-requirements
+    - serverless-domain-manager
+
+custom:
+    project: simple-todo
+    stage: ${opt:stage, self:provider.stage}
+    tableName: ${self:custom.project}-${self:custom.stage}
+    serviceName: ${self:custom.project}-service-${self:custom.stage}
+    hostedZone: jaehyeon.me
+    pythonRequirements:
+        dockerizePip: non-linux
+    domainName: ${self:custom.project}.${seld:custom.hostedZone}
+    basePath: api
+    createRoute53Record: true
+
+provider:
+    name: aws
+    runtime: python3.7
+    region: ap-southeast-2
+    stage: dev
+    iamRoleStatements:
+        - Effect: Allow
+          Action:
+            - dynamodb:DescribeTable
+            - dynamodb:Query
+            - dynamodb:GetItem
+            - dynamodb:PutItem
+            - dynamodb:UpdateItem
+            - dynamodb:DeleteItem
+          Resource:
+            - "Fn::GetAtt": [ TodoTable, Arn ]
+    memorySize: 128 # optional, in MB, default is 1024
+    timeout: 6 # optional, in seconds, default is 6
+    environment:
+        PREFIX: api
+        TABLE_NAME: ${self:custom.tableName}
+    stackTags:
+        Name: ${self:custom.serviceName}
+        Project: ${self:custom.serviceName}
+    tags:
+        Name: ${self:custom.serviceName}
+        Project: ${self:custom.serviceName}
+
+package:
+    include:
+        - main.py
+        - src/**
+
+functions:
+    app:
+        handler: wsgi.handler
+        events:
+            - http: 
+                method: ANY 
+                path: /
+                cors: true
+                authorizer: aws_iam
+            - http: 
+                method: GET
+                path: /docs
+                cors: false
+            - http: 
+                method: GET
+                path: /redoc
+                cors: false
+            - http: 
+                method: ANY
+                path: '{proxy+}'
+                cors: true
+                authorizer: aws_iam
+
+resources:
+    - ${file(resources/dyanmodb.yaml)}
+    - ${file(resources/gateway-errors-responses.yaml)}
