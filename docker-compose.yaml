@@ -2,7 +2,9 @@ version: "3.7"
 services:
   backend:
     image: sls-fastapi-dev
-    build: .
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
     container_name: backend
     depends_on:
       - localstack
@@ -39,7 +41,9 @@ services:
       - ./localstack/dyanmodb.yaml:/tmp/dyanmodb.yaml
   test:
     image: sls-fastapi-dev
-    build: .
+    build:
+      context: .
+      dockerfile: ./backend/Dockerfile
     container_name: test
     depends_on:
       - localstack
