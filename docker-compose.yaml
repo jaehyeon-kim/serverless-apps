@@ -23,6 +23,7 @@ services:
       - AWS_DEFAULT_REGION=ap-southeast-2 
       - TABLE_NAME=simple-todo
       - LOCAL_STACK_ENDPOINT_URL=http://localstack:4569
+      - IS_LOCAL=1
   localstack:
     image: localstack/localstack:0.9.6
     container_name: localstack
@@ -38,7 +39,7 @@ services:
       - DATA_DIR=/tmp/localstack/data
     volumes:
       - ./localstack/create-resources.sh:/docker-entrypoint-initaws.d/create-resources.sh
-      - ./localstack/dyanmodb.yaml:/tmp/dyanmodb.yaml
+      - ./cloudformation/dyanmodb.yaml:/tmp/dyanmodb.yaml
   test:
     image: sls-fastapi-dev
     build:

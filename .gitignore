@@ -1,5 +1,7 @@
 .bash_history
 .python_history
+.serverless
+node_modules
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

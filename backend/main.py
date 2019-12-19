@@ -1,10 +1,18 @@
+import os
+from mangum import Mangum
 from typing import Union
 from fastapi import FastAPI, HTTPException
 
 from src.todo import TodoItems
 from src.models import BasicError, Status, NewItem, PatchItem, Item, Items
 
+
 app = FastAPI(title="To do list backend")
+
+if not os.getenv("IS_LOCAL"):
+    app.docs_url = None
+    app.redoc_url = None
+    handler = Mangum(app)
 
 
 @app.get("/", response_model=Status, tags=["health"])

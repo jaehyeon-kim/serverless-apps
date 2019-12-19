@@ -2,19 +2,15 @@ service: ${self:custom.serviceName}
 
 plugins:
     - serverless-python-requirements
-    - serverless-domain-manager
 
 custom:
     project: simple-todo
     stage: ${opt:stage, self:provider.stage}
-    tableName: ${self:custom.project}-${self:custom.stage}
-    serviceName: ${self:custom.project}-service-${self:custom.stage}
+    tableName: ${self:custom.project}
+    serviceName: ${self:custom.project}-service
     hostedZone: jaehyeon.me
     pythonRequirements:
         dockerizePip: non-linux
-    domainName: ${self:custom.project}.${seld:custom.hostedZone}
-    basePath: api
-    createRoute53Record: true
 
 provider:
     name: aws
@@ -38,40 +34,47 @@ provider:
         PREFIX: api
         TABLE_NAME: ${self:custom.tableName}
     stackTags:
-        Name: ${self:custom.serviceName}
-        Project: ${self:custom.serviceName}
+        Name: ${self:custom.serviceName}-stack
+        Project: ${self:custom.project}
     tags:
         Name: ${self:custom.serviceName}
-        Project: ${self:custom.serviceName}
+        Project: ${self:custom.project}
 
 package:
     include:
         - main.py
         - src/**
+    exclude:
+        - __pycache__/**
+        - .pytest_cache/**
+        - node_modules/**
+        - resources/**
+        - .dockerignore
+        - conftest.py
+        - Dockerfile
+        - Dockerfile-ms
+        - package.json
+        - test_main.py
+        - yarn.lock
 
 functions:
     app:
-        handler: wsgi.handler
+        handler: main.handler
         events:
             - http: 
                 method: ANY 
                 path: /
                 cors: true
-                authorizer: aws_iam
-            - http: 
-                method: GET
-                path: /docs
-                cors: false
-            - http: 
-                method: GET
-                path: /redoc
-                cors: false
+                # authorizer: aws_iam            
             - http: 
                 method: ANY
                 path: '{proxy+}'
                 cors: true
-                authorizer: aws_iam
+                # authorizer: aws_iam
 
 resources:
     - ${file(resources/dyanmodb.yaml)}
     - ${file(resources/gateway-errors-responses.yaml)}
+
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-domainname.html
+# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-basepathmapping.html
