@@ -1,31 +1,52 @@
-# serverless-apps
+# Serverless Simple Todo App
 
-### Build Docker Image
+## Backend Service
+
+### Local Development and Testing
 
 ```bash
+# build docker image
 docker build -t sls-fastapi-dev -f ./backend/Dockerfile .
-# testing multi stage build
-docker build --target sls-fastapi-build \
-    -t sls-fastapi-build -f ./backend/Dockerfile-ms . \
-    && docker build --target sls-fastapi \
-        -t sls-fastapi -f ./backend/Dockerfile-ms . \
-    && docker build --target sls-fastapi-dev \
-        -t sls-fastapi-dev -f ./backend/Dockerfile-ms .
-```
-### Run Service
 
-```bash
-# if image is built
-docker-compose up -d backend
-# if not
-docker-compose up -b --build backend
+# run service
+docker-compose -f ./backend/docker-compose.yaml up -d backend
+
+# run test
+docker-compose -f ./backend/docker-compose.yaml up test
+
+# clean up
+docker-compose -f ./backend/docker-compose.yaml down
 ```
 
-### Run Test
+### Deployment
+
+* CloudFormation
+    * Api Gateway custom domain and DNS record
+    * [Edge-optimized API endpoint](https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-basic-concept.html#apigateway-definition-edge-optimized-api-endpoint) configuration
+        * Need ACM certificate in _us-east-1_ for the custom domain 
 
 ```bash
-# if image is built
-docker-compose up -d test && docker-compose down
-# if not
-docker-compose up -b --build test && docker-compose down
+export CertIdentifier=<acm-certificate-identifier>
+export DomainName=<domain-name>
+export HostedZoneId=<hosted-zone-id> 
+
+aws cloudformation deploy --stack-name simple-todo-custom-domain \
+    --template-file ./cloudformation/custom-domain.yaml \
+    --parameter-overrides \
+        CertIdentifier=$CertIdentifier \
+        DomainName=$DomainName \
+        HostedZoneId=$HostedZoneId
+```
+
+* Serverless framework deployment
+    * Deploy service built by [FastAPI](https://fastapi.tiangolo.com/)
+    * Lambda handler created by [mangum](https://github.com/erm/mangum)
+        * Slight modification of `Mangum` to accomodate Api Gateway base path mapping
+    * Extra resources created together
+        * DynamoDB table
+        * Gateway responses: `DEFAULT_4XX` and `DEFAULT_5XX`
+        * Base path mapping
+
+```bash
+cd backend && sls deploy
 ```

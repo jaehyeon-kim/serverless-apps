@@ -8,6 +8,7 @@ custom:
     stage: ${opt:stage, self:provider.stage}
     tableName: ${self:custom.project}
     serviceName: ${self:custom.project}-service
+    basePath: api
     hostedZone: jaehyeon.me
     pythonRequirements:
         dockerizePip: non-linux
@@ -31,7 +32,7 @@ provider:
     memorySize: 128 # optional, in MB, default is 1024
     timeout: 6 # optional, in seconds, default is 6
     environment:
-        PREFIX: api
+        API_GATEWAY_BASE_PATH: ${self:custom.basePath}
         TABLE_NAME: ${self:custom.tableName}
     stackTags:
         Name: ${self:custom.serviceName}-stack
@@ -47,10 +48,12 @@ package:
     exclude:
         - __pycache__/**
         - .pytest_cache/**
+        - backend/**
+        - localstack/**
         - node_modules/**
         - resources/**
-        - .dockerignore
         - conftest.py
+        - docker-compose.yaml
         - Dockerfile
         - Dockerfile-ms
         - package.json
@@ -65,16 +68,14 @@ functions:
                 method: ANY 
                 path: /
                 cors: true
-                # authorizer: aws_iam            
+                authorizer: aws_iam            
             - http: 
                 method: ANY
                 path: '{proxy+}'
                 cors: true
-                # authorizer: aws_iam
+                authorizer: aws_iam
 
 resources:
     - ${file(resources/dyanmodb.yaml)}
     - ${file(resources/gateway-errors-responses.yaml)}
-
-# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-domainname.html
-# https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/aws-resource-apigateway-basepathmapping.html
+    - ${file(resources/base-path-mapping.yaml)}

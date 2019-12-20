@@ -1,6 +1,0 @@
-resources
-__pycache__
-.bash_history
-.python_history
-.pytest_cache
-Dockerfile-ms

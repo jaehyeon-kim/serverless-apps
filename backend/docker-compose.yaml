@@ -2,9 +2,6 @@ version: "3.7"
 services:
   backend:
     image: sls-fastapi-dev
-    build:
-      context: .
-      dockerfile: ./backend/Dockerfile
     container_name: backend
     depends_on:
       - localstack
@@ -16,14 +13,13 @@ services:
     ports:
       - 8000:8000
     volumes:
-      - ./backend:/home/app
+      - ./:/home/app
     environment:
       - AWS_ACCESS_KEY_ID=foobar
       - AWS_SECRET_ACCESS_KEY=foobar
       - AWS_DEFAULT_REGION=ap-southeast-2 
       - TABLE_NAME=simple-todo
       - LOCAL_STACK_ENDPOINT_URL=http://localstack:4569
-      - IS_LOCAL=1
   localstack:
     image: localstack/localstack:0.9.6
     container_name: localstack
@@ -38,21 +34,18 @@ services:
       - DEBUG=1
       - DATA_DIR=/tmp/localstack/data
     volumes:
-      - ./localstack/create-resources.sh:/docker-entrypoint-initaws.d/create-resources.sh
-      - ./cloudformation/dyanmodb.yaml:/tmp/dyanmodb.yaml
+      - $PWD/backend/localstack/create-resources.sh:/docker-entrypoint-initaws.d/create-resources.sh
+      - $PWD/backend/localstack/resources:/tmp/resources
   test:
     image: sls-fastapi-dev
-    build:
-      context: .
-      dockerfile: ./backend/Dockerfile
     container_name: test
     depends_on:
       - localstack
     entrypoint: "python"
     command: >
-      -m pytest -v --disable-warnings
+      -m pytest -vs --disable-warnings
     volumes:
-      - ./backend:/home/app
+      - ./:/home/app
     environment:
       - AWS_ACCESS_KEY_ID=foobar
       - AWS_SECRET_ACCESS_KEY=foobar

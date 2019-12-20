@@ -1,0 +1,35 @@
+Description: >
+    Api Gateway Custom Domain Name with Edge optimized endpoint configuration 
+    - requires an ACM Certificate in us-east-1
+Parameters:
+    CertIdentifier:
+        Description: ACM Certificate Identifier
+        Type: String    
+    DomainName:
+        Description: Custom Domain Name
+        Type: String
+    HostedZoneId:
+        Description: Route53 Hosted Zone Id
+        Type: String
+Resources:
+    SimpleTodoDomainName:
+        Type: AWS::ApiGateway::DomainName
+        Properties: 
+          CertificateArn: !Sub "arn:aws:acm:us-east-1:${AWS::AccountId}:certificate/${CertIdentifier}"
+          DomainName: !Ref DomainName
+          EndpointConfiguration: 
+            Types:
+                - EDGE
+          SecurityPolicy: TLS_1_0
+    DNSRecord:
+        Type: AWS::Route53::RecordSet
+        Properties:
+            HostedZoneId : !Ref HostedZoneId
+            Name: !Ref DomainName
+            AliasTarget:
+                DNSName: !GetAtt SimpleTodoDomainName.DistributionDomainName
+                HostedZoneId: !GetAtt SimpleTodoDomainName.DistributionHostedZoneId
+            Type: A
+Outputs:  
+    DomainName:
+        Value: !Ref SimpleTodoDomainName

@@ -1,0 +1,14 @@
+Resources:
+    ApiBasePathMapping:
+        DependsOn:
+            - ApiGatewayMethodOptions
+            - ApiGatewayMethodProxyVarOptions
+            - ApiGatewayMethodAny
+            - ApiGatewayMethodProxyVarAny
+        Type: AWS::ApiGateway::BasePathMapping
+        Properties: 
+            BasePath: api
+            DomainName: ${self:custom.project}.${self:custom.hostedZone}
+            RestApiId:
+                Ref: 'ApiGatewayRestApi'
+            Stage: ${self:custom.stage}

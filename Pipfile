@@ -10,11 +10,12 @@ pylint = "*"
 pytest = "*"
 pytest-dependency = "*"
 requests = "*"
+aws_requests_auth = "*"
 
 [packages]
 fastapi = "*"
 uvicorn = "*"
-mangum = "*"
+mangum = "==0.6.19"
 
 [requires]
 python_version = "3.7"
