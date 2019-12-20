@@ -10,5 +10,10 @@
         "100"
     ],
     "editor.formatOnSave": true,
-    "python.pythonPath": "/home/jaehyeon/.local/share/virtualenvs/serverless-apps-Lp8seq_w/bin/python"
+    "python.pythonPath": "/home/jaehyeon/.local/share/virtualenvs/serverless-apps-Lp8seq_w/bin/python",
+    "[yaml]": {
+        "editor.insertSpaces": true,
+        "editor.tabSize": 2,
+        "editor.detectIndentation": false
+    }
 }

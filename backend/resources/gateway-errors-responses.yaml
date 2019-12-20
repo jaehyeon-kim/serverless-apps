@@ -10,7 +10,7 @@ Resources:
         "application/json": "{\"detail\":$context.error.messageString}"      
       ResponseType: DEFAULT_4XX
       RestApiId:
-        Ref: 'ApiGatewayRestApi'
+        !Ref ApiGatewayRestApi
   GatewayResponseDefault5XX:
     Type: 'AWS::ApiGateway::GatewayResponse'
     Properties:
@@ -22,4 +22,4 @@ Resources:
         "application/json": "{\"detail\":$context.error.messageString}"
       ResponseType: DEFAULT_5XX
       RestApiId:
-        Ref: 'ApiGatewayRestApi'
+        !Ref ApiGatewayRestApi

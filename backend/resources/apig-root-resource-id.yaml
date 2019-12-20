@@ -1,0 +1,7 @@
+Outputs:
+  RootResourceId:
+    Description: Apig id
+    Value:
+      !GetAtt ApiGatewayRestApi.RootResourceId
+    Export:
+      Name: ${self:custom.serviceName}-apigid
