@@ -73,7 +73,7 @@ functions:
           method: ANY
           path: '{proxy+}'
           cors: true
-          # authorizer: aws_iam
+          authorizer: aws_iam
 
 resources:
   - ${file(resources/dyanmodb.yaml)}
