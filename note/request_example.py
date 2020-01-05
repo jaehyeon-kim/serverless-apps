@@ -1,5 +1,4 @@
 import os
-import json
 import requests
 from pprint import pprint
 from aws_requests_auth.boto_utils import BotoAWSRequestsAuth
@@ -33,7 +32,7 @@ resp = requests.get("{0}/items".format(base_url), auth=auth, params=params)
 
 ## create item
 data = set_data(username="jakim", todo="Watch Parasite")
-resp = requests.post("{0}/item".format(base_url), auth=auth, data=json.dumps(data))
+resp = requests.post("{0}/item".format(base_url), auth=auth, json=data)
 # resp.json()
 # {
 #     "item": {
@@ -55,7 +54,7 @@ keys = {
 new_item = {k: v for k, v in resp.json()["item"].items() if k in ["username", "created_at"]}
 new_item.update({"todo": "Watch Frozen 2"})
 
-resp = requests.patch("{0}/item".format(base_url), auth=auth, data=json.dumps(new_item))
+resp = requests.patch("{0}/item".format(base_url), auth=auth, json=new_item)
 # resp.json()
 # {
 #     "item": {
