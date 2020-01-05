@@ -1,20 +1,23 @@
 import os
 import base64
 import urllib.parse
-from typing import Optional
+import typing
+from dataclasses import dataclass
 from mangum import Mangum
+from mangum.types import ASGIApp
 from mangum.protocols.http import ASGIHTTPCycle
 from mangum.adapter import get_server_and_client
-from dataclasses import dataclass
 
 
 @dataclass
 class MangumExt(Mangum):
-    def strip_base_path(self, event: dict):
+
+    api_gateway_base_path: typing.Optional[str] = None
+
+    def strip_base_path(self, event: dict) -> str:
         path_info = event["path"]
-        base_path = os.getenv("API_GATEWAY_BASE_PATH")
-        if base_path:
-            script_name = "/" + base_path
+        if self.api_gateway_base_path:
+            script_name = "/" + self.api_gateway_base_path
             if path_info.startswith(script_name):
                 path_info = path_info[len(script_name) :]
         return urllib.parse.unquote(path_info or "/")

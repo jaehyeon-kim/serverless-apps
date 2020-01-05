@@ -11,7 +11,7 @@ app = FastAPI(title="To do list backend")
 if not os.getenv("LOCAL_STACK_ENDPOINT_URL"):
     app.docs_url = None
     app.redoc_url = None
-    handler = MangumExt(app)
+    handler = MangumExt(app, api_gateway_base_path=os.getenv("API_GATEWAY_BASE_PATH"))
 
 
 @app.get("/", response_model=Status, tags=["health"])

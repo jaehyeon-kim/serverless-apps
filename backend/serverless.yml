@@ -1,81 +1,82 @@
 service: ${self:custom.serviceName}
 
 plugins:
-    - serverless-python-requirements
+  - serverless-python-requirements
 
 custom:
-    project: simple-todo
-    stage: ${opt:stage, self:provider.stage}
-    tableName: ${self:custom.project}
-    serviceName: ${self:custom.project}-service
-    basePath: api
-    hostedZone: jaehyeon.me
-    pythonRequirements:
-        dockerizePip: non-linux
+  project: simple-todo
+  stage: ${opt:stage, self:provider.stage}
+  tableName: ${self:custom.project}
+  serviceName: ${self:custom.project}-service
+  basePath: api
+  hostedZone: jaehyeon.me
+  pythonRequirements:
+    dockerizePip: non-linux
 
 provider:
-    name: aws
-    runtime: python3.7
-    region: ap-southeast-2
-    stage: dev
-    iamRoleStatements:
-        - Effect: Allow
-          Action:
-            - dynamodb:DescribeTable
-            - dynamodb:Query
-            - dynamodb:GetItem
-            - dynamodb:PutItem
-            - dynamodb:UpdateItem
-            - dynamodb:DeleteItem
-          Resource:
-            - "Fn::GetAtt": [ TodoTable, Arn ]
-    memorySize: 128 # optional, in MB, default is 1024
-    timeout: 6 # optional, in seconds, default is 6
-    environment:
-        API_GATEWAY_BASE_PATH: ${self:custom.basePath}
-        TABLE_NAME: ${self:custom.tableName}
-    stackTags:
-        Name: ${self:custom.serviceName}-stack
-        Project: ${self:custom.project}
-    tags:
-        Name: ${self:custom.serviceName}
-        Project: ${self:custom.project}
+  name: aws
+  runtime: python3.7
+  region: ap-southeast-2
+  stage: dev
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - dynamodb:DescribeTable
+        - dynamodb:Query
+        - dynamodb:GetItem
+        - dynamodb:PutItem
+        - dynamodb:UpdateItem
+        - dynamodb:DeleteItem
+      Resource:
+        - "Fn::GetAtt": [ TodoTable, Arn ]
+  memorySize: 128 # optional, in MB, default is 1024
+  timeout: 6 # optional, in seconds, default is 6
+  environment:
+    API_GATEWAY_BASE_PATH: ${self:custom.basePath}
+    TABLE_NAME: ${self:custom.tableName}
+  stackTags:
+    Name: ${self:custom.serviceName}-stack
+    Project: ${self:custom.project}
+  tags:
+    Name: ${self:custom.serviceName}
+    Project: ${self:custom.project}
 
 package:
-    include:
-        - main.py
-        - src/**
-    exclude:
-        - __pycache__/**
-        - .pytest_cache/**
-        - backend/**
-        - localstack/**
-        - node_modules/**
-        - resources/**
-        - conftest.py
-        - docker-compose.yaml
-        - Dockerfile
-        - Dockerfile-ms
-        - package.json
-        - test_main.py
-        - yarn.lock
+  include:
+    - main.py
+    - src/**
+  exclude:
+    - __pycache__/**
+    - .pytest_cache/**
+    - backend/**
+    - localstack/**
+    - node_modules/**
+    - resources/**
+    - conftest.py
+    - docker-compose.yaml
+    - Dockerfile
+    - Dockerfile-ms
+    - package.json
+    - test_main.py
+    - yarn.lock
 
 functions:
-    app:
-        handler: main.handler
-        events:
-            - http: 
-                method: ANY 
-                path: /
-                cors: true
-                authorizer: aws_iam            
-            - http: 
-                method: ANY
-                path: '{proxy+}'
-                cors: true
-                authorizer: aws_iam
+  app:
+    handler: main.handler
+    events:
+      - http: 
+          method: ANY 
+          path: /
+          cors: true
+          authorizer: aws_iam            
+      - http: 
+          method: ANY
+          path: '{proxy+}'
+          cors: true
+          authorizer: aws_iam
 
 resources:
-    - ${file(resources/dyanmodb.yaml)}
-    - ${file(resources/gateway-errors-responses.yaml)}
-    - ${file(resources/base-path-mapping.yaml)}
+  - ${file(resources/dyanmodb.yaml)}
+  - ${file(resources/gateway-errors-responses.yaml)}
+  - ${file(resources/base-path-mapping.yaml)}
+  - ${file(resources/apig-root-resource-id.yaml)}

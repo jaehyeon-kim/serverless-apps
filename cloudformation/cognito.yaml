@@ -1,0 +1,148 @@
+---
+Description: Create cognito user/identity pool and app client
+Parameters:
+  ProjectName:
+    Description: Project Name
+    Type: String
+    Default: simple-todo
+  ApigIdExportName:
+    Description: Api gateway id export name
+    Type: String
+    Default: simple-todo-service-apigid
+Resources:
+  CognitoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: !Sub "${ProjectName}-user-pool"
+      AutoVerifiedAttributes:
+        - email
+      AdminCreateUserConfig:
+        AllowAdminCreateUserOnly: 'false'
+        UnusedAccountValidityDays: 7
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: 'true'
+          RequireNumbers: 'true'
+          RequireSymbols: 'false'
+          RequireUppercase: 'true'
+      UsernameAttributes:
+        - email
+  AppClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: !Ref ProjectName
+      ExplicitAuthFlows:
+        - ALLOW_ADMIN_USER_PASSWORD_AUTH
+        - ALLOW_CUSTOM_AUTH
+        - ALLOW_USER_SRP_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      RefreshTokenValidity: 7
+      UserPoolId:
+        !Ref CognitoUserPool
+  CognitoIdentityPool:
+    Type: AWS::Cognito::IdentityPool
+    Properties:
+      IdentityPoolName: simple todo
+      AllowUnauthenticatedIdentities: true
+      CognitoIdentityProviders:
+        - ClientId: !Ref AppClient
+          ProviderName: !GetAtt CognitoUserPool.ProviderName
+  CognitoIdentityPoolRoles:
+    DependsOn:
+      - AuthenticatedRole
+      - AuthenticatedRolePolicy
+      - UnAuthenticatedRole
+      - UnAuthenticatedRolePolicy
+    Type: AWS::Cognito::IdentityPoolRoleAttachment
+    Properties:
+      IdentityPoolId:
+        !Ref CognitoIdentityPool
+      Roles:
+        authenticated:
+          !GetAtt AuthenticatedRole.Arn
+        unauthenticated:
+          !GetAtt UnAuthenticatedRole.Arn
+  AuthenticatedRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-authenticated-role"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+            - sts:AssumeRoleWithWebIdentity
+            Condition:
+              ForAnyValue:StringLike:
+                cognito-identity.amazonaws.com:amr: authenticated
+              StringEquals:
+                cognito-identity.amazonaws.com:aud:
+                  !Ref CognitoIdentityPool
+            Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com    
+  AuthenticatedRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "${ProjectName}-authenticated-role-policy"
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+            - mobileanalytics:PutEvents
+            - cognito-sync:*
+            - cognito-identity:*
+            Effect: Allow
+            Resource:
+              - "*"
+            Sid: AuthenticatedRoleCognitoActions
+          - Action:
+              - execute-api:Invoke
+            Effect: Allow
+            Resource:
+              !Join
+                - ''
+                - - "arn:aws:execute-api:ap-southeast-2:*:"
+                  - Fn::ImportValue: !Sub "${ApigIdExportName}"
+                  - "/*"
+              # - !Sub "arn:aws:execute-api:ap-southeast-2:*:${ApigId}/*"
+            Sid: AuthenticatedRoleApiInvokes
+      Roles:
+        - !Ref AuthenticatedRole
+  UnAuthenticatedRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: !Sub "${ProjectName}-unauthenticated-role"
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+            - sts:AssumeRoleWithWebIdentity
+            Condition:
+              ForAnyValue:StringLike:
+                cognito-identity.amazonaws.com:amr: unauthenticated
+              StringEquals:
+                cognito-identity.amazonaws.com:aud:
+                  !Ref CognitoIdentityPool
+            Effect: Allow
+            Principal:
+              Federated: cognito-identity.amazonaws.com
+  UnAuthenticatedRolePolicy:
+    Type: AWS::IAM::Policy
+    Properties:
+      PolicyName: !Sub "${ProjectName}-unauthenticated-role-policy"
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Action:
+            - mobileanalytics:PutEvents
+            - cognito-sync:*
+            Effect: Allow
+            Resource:
+              - "*"
+            Sid: UnAuthenticatedRoleCognitoActions
+      Roles:
+        - !Ref UnAuthenticatedRole
+
+
+

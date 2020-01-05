@@ -46,7 +46,21 @@ aws cloudformation deploy --stack-name simple-todo-custom-domain \
         * DynamoDB table
         * Gateway responses: `DEFAULT_4XX` and `DEFAULT_5XX`
         * Base path mapping
+    * Api's root resource id is exported to be referenced in the cognito stack template
 
 ```bash
 cd backend && sls deploy
+```
+
+## Frontend App
+
+### Deployment
+
+* CloudFormation
+    * Cognito User/Identity Pool and App Client
+
+```bash
+aws cloudformation deploy --stack-name simple-todo-cognito \
+    --template-file ./cloudformation/cognito.yaml \
+    --capabilities CAPABILITY_NAMED_IAM
 ```
